@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator, ValidationInfo, ValidationError
+from pydantic import BaseModel, validator
 from typing import List, Optional
 
 class PlayerModel(BaseModel):

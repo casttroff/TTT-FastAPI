@@ -8,4 +8,4 @@ app.include_router(game.router)
 
 @app.get("/")
 async def root():
-    return {"message": "/start-game to start a game"}
+    return {"message": "/start-game to start a game :]"}

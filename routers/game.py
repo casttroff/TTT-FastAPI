@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Query
+from fastapi.exceptions import ResponseValidationError
 from models.bd_models import Game
 from models.control_models import StartGameModel, InputGameModel, GameModel
 from schemas.game_schema import game_starter_schema, game_schema
@@ -12,7 +13,7 @@ router = APIRouter(
 
 
 @router.get("/list")
-async def games(page: int = Query(1, ge=1), page_size: int = Query(10, le=100), finished: bool = Query(None, description="Filter games by finished status")):
+async def games(page: int = Query(1, ge=1), page_size: int = Query(20, le=100), finished: bool = Query(None, description="Filter games by finished status")):
     try:
         # Calcular el índice de inicio y fin para la paginación
         start_index = (page - 1) * page_size
@@ -37,22 +38,21 @@ async def games(page: int = Query(1, ge=1), page_size: int = Query(10, le=100), 
         raise e
 
 
-@router.get("/list/{id}", status_code=200)
+@router.get("/list/{id}", status_code=200, response_model=GameModel)
 async def get_game(id: int):
     try:
         # Buscar el juego por el ID en la base de datos
         founded_game = Game.get_or_none(Game.game_id == id)
         if founded_game:
             game_dict = game_schema(founded_game)
-            return game_dict
+            return GameModel(**game_dict)
         else:
-            return {"message": "El ID es inválido"}
+            raise HTTPException(status_code=404, detail="El ID no fue encontrado")
     except Exception as e:
-        raise(e)
-        raise HTTPException(status_code=500, detail="Error accediendo a la base de datos")
+        raise HTTPException(status_code=404, detail="El ID ya no existe")
 
 
-@router.post("/start-game", response_model=None)
+@router.post("/start-game", response_model=GameModel)
 async def post_query_game(start_game_input: StartGameModel):
     try:
         # Convierte el objeto StartGame a un diccionario
@@ -66,13 +66,13 @@ async def post_query_game(start_game_input: StartGameModel):
 
         game_dict = game_started.__dict__['__data__']
 
-        return game_dict
+        return GameModel(**game_dict)
     except Exception as e:
         raise(e)
         raise HTTPException(status_code=500, detail="Error accediendo a la base de datos")
 
 
-@router.post("/play-game", response_model=None)
+@router.post("/play-game", response_model=GameModel)
 async def play_game(played_game_input: InputGameModel):
     try:
         founded_game = get_game_or_raise(played_game_input.game_id)
@@ -87,7 +87,7 @@ async def play_game(played_game_input: InputGameModel):
             else:
                 update_winner(founded_game, played_game_input.player)
 
-        return get_updated_game_dict(played_game_input.game_id)
+        return GameModel(**get_updated_game_dict(played_game_input.game_id))
 
     except IndexError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No existe la posición a la cual quiere insertar datos.")

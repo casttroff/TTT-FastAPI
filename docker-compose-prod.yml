@@ -1,0 +1,10 @@
+version: '3.9'
+
+services:
+  fastapidockercomposeprod:
+    build:
+      context: .
+    container_name: fastapiprojectprod
+    ports:
+      - 8080:8000
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--reload"]

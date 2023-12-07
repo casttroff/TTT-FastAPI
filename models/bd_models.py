@@ -1,5 +1,5 @@
 from typing import List, Optional
-from peewee import Model, SqliteDatabase, CharField, IntegerField, ForeignKeyField, AutoField
+from peewee import Model, SqliteDatabase, CharField, IntegerField, AutoField
 from playhouse.sqlite_ext import JSONField  # Importa JSONField para trabajar con campos JSON
 
 # Usa SqliteDatabase directamente en lugar de db_client
